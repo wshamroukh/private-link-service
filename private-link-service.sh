@@ -99,3 +99,6 @@ pubip=$(az network public-ip show -g $rg -n $pe_vnet_name-jump --query ipAddress
 rm -rf $cloudinit_file
 
 echo RDP into this VM $pubip and try to to browse http://$peip which is a private endpoint connected to a private link service!!
+
+# rg cleanup
+#az group delete -n $rg --yes --no-wait
