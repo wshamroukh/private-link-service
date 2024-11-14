@@ -70,8 +70,8 @@ az network nsg rule create -g $rg -n AllowRdp --nsg-name $pls_vnet_name --protoc
 
 # nat gateway
 echo -e "\e[1;36mCreating a NAT Gateway to allow the VMSS to download the custom script and install nginx and InspectorGadget...\e[0m"
-az network public-ip create -g $rg -n natgw --sku Standard -o nome
-az network nat gateway create -g $rg -n natgw --public-ip-addresses natgw --idle-timeout 10 -o nome
+az network public-ip create -g $rg -n natgw --sku Standard -o none
+az network nat gateway create -g $rg -n natgw --public-ip-addresses natgw --idle-timeout 10 -o none
 az network vnet subnet update -g $rg -n $pls_vm_subnet_name --vnet-name $pls_vnet_name --nat-gateway natgw --nsg $pls_vnet_name -o none
 
 # vmss
