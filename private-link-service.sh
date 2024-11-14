@@ -85,7 +85,7 @@ plsid=$(az network private-link-service show -g $rg -n pls --query id -o tsv)
 
 # private endpoint
 echo -e "\e[1;36mCreating a Private Endpoint and connect it to the Private Link Service...\e[0m"
-az network private-endpoint create -g $rg -n pe --connection-name pls-conn --private-connection-resource-id $plsid --subnet $pe_vm_subnet_name --vnet-name $pe_vnet_name --manual-request false
+az network private-endpoint create -g $rg -n pe --connection-name pls-conn --private-connection-resource-id $plsid --subnet $pe_vm_subnet_name --vnet-name $pe_vnet_name --manual-request false -o none
 peip=$(az network nic list -g $rg --query "[?contains(name,'pe.nic')].ipConfigurations[0].privateIPAddress" -o tsv)
 
 # pe test vm
