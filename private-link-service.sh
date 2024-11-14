@@ -1,4 +1,4 @@
-rg=private-link-service
+rg=private-link-service1
 location=centralindia
 
 pls_vnet_name=pls
@@ -95,5 +95,8 @@ az network public-ip create -g $rg -n $pe_vnet_name-jump --sku basic -o none
 az network nic create -g $rg -n $pe_vnet_name-jump -l $location --public-ip-address $pe_vnet_name-jump --vnet-name $pe_vnet_name --subnet $pe_vm_subnet_name -o none
 az vm create -g $rg -n $pe_vnet_name-jump -l $location --image $win_vm_image --nics $pe_vnet_name-jump --os-disk-name $pe_vnet_name-jump --size $vm_size --admin-username $admin_username --admin-password $admin_password -o none
 pubip=$(az network public-ip show -g $rg -n $pe_vnet_name-jump --query ipAddress -o tsv)
+
+# clean up cloud init script
+rm -rf $cloudinit_file
 
 echo RDP into this VM $pubip and try to to browse http://$peip which is a private endpoint connected to a private link service!!
