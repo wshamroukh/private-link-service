@@ -43,7 +43,7 @@ echo -e "\e[1;36mCreating $pls_vnet_name VNet...\e[0m"
 az network vnet create -g $rg -n $pls_vnet_name -l $location --address-prefixes $pls_vnet_address --subnet-name $pls_vm_subnet_name --subnet-prefixes $pls_vm_subnet_address -o none
 
 #Before a private link service can be created in the virtual network, the setting privateLinkServiceNetworkPolicies must be disabled.
-echo -e "\e[1;36mDisabling network policy on $pe_vnet_name VNet for private link service to work...\e[0m"
+echo -e "\e[1;36mDisabling network policy on $pls_vnet_name VNet for private link service to work...\e[0m"
 az network vnet subnet update -g $rg -n $pls_vm_subnet_name --vnet-name $pls_vnet_name --private-link-service-network-policies Disabled -o none
 
 # pe vnet
