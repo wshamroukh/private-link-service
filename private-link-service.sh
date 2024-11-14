@@ -1,4 +1,4 @@
-rg=private-link-service1
+rg=private-link-service
 location=centralindia
 
 pls_vnet_name=pls
