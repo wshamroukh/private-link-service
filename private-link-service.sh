@@ -81,7 +81,6 @@ az vmss create -g $rg -n vmss --image $vm_image --admin-username $admin_username
 # private link service
 echo -e "\e[1;36mCreating a Private Link Service to the ilb...\e[0m"
 az network private-link-service create -g $rg -n pls --vnet-name $pls_vnet_name --subnet $pls_vm_subnet_name --lb-name ilb --lb-frontend-ip-configs fe --private-ip-address 10.1.0.250 --private-ip-allocation-method Static --private-ip-address-version IPv4 -o none
-plsip=$(az network private-link-service show -g $rg -n pls --query ipConfigurations[0].privateIPAddress -o tsv)
 plsid=$(az network private-link-service show -g $rg -n pls --query id -o tsv)
 
 # private endpoint
