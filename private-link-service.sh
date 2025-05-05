@@ -15,11 +15,10 @@ admin_username=$(whoami)
 admin_password=Test#123#123
 vm_size=Standard_B2als_v2
 myip=$(curl -s https://ifconfig.co)
-vm_image=$(az vm image list -l $location -p Canonical -s 22_04-lts --all --query "[?offer=='0001-com-ubuntu-server-jammy'].urn" -o tsv | sort -u | tail -n 1) && echo $vm_image
 
 win_vm_image=$(az vm image list -l $location -p MicrosoftWindowsDesktop --all -s "win10-22h2-ent" -f Windows-10 --query "[?imageDeprecationStatus.imageState=='Active' && sku=='win10-22h2-ent'].urn" -o tsv | sort -u | tail -n 1)
 
-cloudinit_file=~/cloudinit.txt
+cloudinit_file=cloudinit.txt
 cat <<EOF > $cloudinit_file
 #cloud-config
 runcmd:
@@ -76,24 +75,24 @@ az network vnet subnet update -g $rg -n $pls_vm_subnet_name --vnet-name $pls_vne
 
 # vmss
 echo -e "\e[1;36mCreating a Virtual Machine Scaleset and put it as a backend pool for the ilb...\e[0m"
-az vmss create -g $rg -n vmss --image $vm_image --admin-username $admin_username --generate-ssh-keys --lb ilb --orchestration-mode Uniform --instance-count 2 --vnet-name $pls_vnet_name --subnet $pls_vm_subnet_name --nsg $pls_vnet_name --vm-sku $vm_size --custom-data $cloudinit_file --upgrade-policy-mode Automatic -o none
+az vmss create -g $rg -n vmss --image Ubuntu2404 --admin-username $admin_username --generate-ssh-keys --lb ilb --orchestration-mode Uniform --instance-count 2 --vnet-name $pls_vnet_name --subnet $pls_vm_subnet_name --nsg $pls_vnet_name --vm-sku $vm_size --custom-data $cloudinit_file --upgrade-policy-mode Automatic -o none
 
 # private link service
 echo -e "\e[1;36mCreating a Private Link Service to the ilb...\e[0m"
 az network private-link-service create -g $rg -n pls --vnet-name $pls_vnet_name --subnet $pls_vm_subnet_name --lb-name ilb --lb-frontend-ip-configs fe --private-ip-address 10.1.0.250 --private-ip-allocation-method Static --private-ip-address-version IPv4 -o none
-plsid=$(az network private-link-service show -g $rg -n pls --query id -o tsv)
+plsid=$(az network private-link-service show -g $rg -n pls --query id -o tsv | tr -d '\r')
 
 # private endpoint
 echo -e "\e[1;36mCreating a Private Endpoint and connect it to the Private Link Service...\e[0m"
 az network private-endpoint create -g $rg -n pe --connection-name pls-conn --private-connection-resource-id $plsid --subnet $pe_vm_subnet_name --vnet-name $pe_vnet_name --manual-request false -o none
-peip=$(az network nic list -g $rg --query "[?contains(name,'pe.nic')].ipConfigurations[0].privateIPAddress" -o tsv)
+peip=$(az network nic list -g $rg --query "[?contains(name,'pe.nic')].ipConfigurations[0].privateIPAddress" -o tsv | tr -d '\r')
 
 # pe test vm
 echo -e "\e[1;36mCreating a VM in PE VNet to access the private endpoint...\e[0m"
 az network public-ip create -g $rg -n $pe_vnet_name-jump --sku basic -o none
 az network nic create -g $rg -n $pe_vnet_name-jump -l $location --public-ip-address $pe_vnet_name-jump --vnet-name $pe_vnet_name --subnet $pe_vm_subnet_name -o none
-az vm create -g $rg -n $pe_vnet_name-jump -l $location --image $win_vm_image --nics $pe_vnet_name-jump --os-disk-name $pe_vnet_name-jump --size $vm_size --admin-username $admin_username --admin-password $admin_password -o none
-pubip=$(az network public-ip show -g $rg -n $pe_vnet_name-jump --query ipAddress -o tsv)
+az vm create -g $rg -n $pe_vnet_name-jump -l $location --image  Win2022Datacenter --nics $pe_vnet_name-jump --os-disk-name $pe_vnet_name-jump --size $vm_size --admin-username $admin_username --admin-password $admin_password -o none
+pubip=$(az network public-ip show -g $rg -n $pe_vnet_name-jump --query ipAddress -o tsv | tr -d '\r')
 
 # clean up cloud init script
 rm -rf $cloudinit_file
