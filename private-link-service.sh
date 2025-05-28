@@ -16,8 +16,6 @@ admin_password=Test#123#123
 vm_size=Standard_B2als_v2
 myip=$(curl -s https://ifconfig.co)
 
-win_vm_image=$(az vm image list -l $location -p MicrosoftWindowsDesktop --all -s "win10-22h2-ent" -f Windows-10 --query "[?imageDeprecationStatus.imageState=='Active' && sku=='win10-22h2-ent'].urn" -o tsv | sort -u | tail -n 1)
-
 cloudinit_file=cloudinit.txt
 cat <<EOF > $cloudinit_file
 #cloud-config
@@ -41,7 +39,7 @@ az group create -l $location -n $rg -o none
 echo -e "\e[1;36mCreating $pls_vnet_name VNet...\e[0m"
 az network vnet create -g $rg -n $pls_vnet_name -l $location --address-prefixes $pls_vnet_address --subnet-name $pls_vm_subnet_name --subnet-prefixes $pls_vm_subnet_address -o none
 
-#Before a private link service can be created in the virtual network, the setting privateLinkServiceNetworkPolicies must be disabled.
+# Before a private link service can be created in the virtual network, the setting privateLinkServiceNetworkPolicies must be disabled.
 echo -e "\e[1;36mDisabling network policy on $pls_vnet_name VNet for private link service to work...\e[0m"
 az network vnet subnet update -g $rg -n $pls_vm_subnet_name --vnet-name $pls_vnet_name --private-link-service-network-policies Disabled -o none
 
@@ -75,7 +73,7 @@ az network vnet subnet update -g $rg -n $pls_vm_subnet_name --vnet-name $pls_vne
 
 # vmss
 echo -e "\e[1;36mCreating a Virtual Machine Scaleset and put it as a backend pool for the ilb...\e[0m"
-az vmss create -g $rg -n vmss --image Ubuntu2404 --admin-username $admin_username --generate-ssh-keys --lb ilb --orchestration-mode Uniform --instance-count 2 --vnet-name $pls_vnet_name --subnet $pls_vm_subnet_name --nsg $pls_vnet_name --vm-sku $vm_size --custom-data $cloudinit_file --upgrade-policy-mode Automatic -o none
+az vmss create -g $rg -n vmss --image Ubuntu2404 --admin-username $admin_username --generate-ssh-keys --lb ilb --orchestration-mode Uniform --instance-count 2 --vnet-name $pls_vnet_name --subnet $pls_vm_subnet_name --nsg $pls_vnet_name --vm-sku $vm_size --custom-data $cloudinit_file --upgrade-policy-mode Automatic --no-wait
 
 # private link service
 echo -e "\e[1;36mCreating a Private Link Service to the ilb...\e[0m"
@@ -91,13 +89,14 @@ peip=$(az network nic list -g $rg --query "[?contains(name,'pe.nic')].ipConfigur
 echo -e "\e[1;36mCreating a VM in PE VNet to access the private endpoint...\e[0m"
 az network public-ip create -g $rg -n $pe_vnet_name-jump --sku basic -o none
 az network nic create -g $rg -n $pe_vnet_name-jump -l $location --public-ip-address $pe_vnet_name-jump --vnet-name $pe_vnet_name --subnet $pe_vm_subnet_name -o none
-az vm create -g $rg -n $pe_vnet_name-jump -l $location --image  Win2022Datacenter --nics $pe_vnet_name-jump --os-disk-name $pe_vnet_name-jump --size $vm_size --admin-username $admin_username --admin-password $admin_password -o none
+az vm create -g $rg -n $pe_vnet_name-jump -l $location --image  Win2022Datacenter --nics $pe_vnet_name-jump --os-disk-name $pe_vnet_name-jump --size Standard_B2als_v2 --admin-username $admin_username --admin-password $admin_password -o none
 pubip=$(az network public-ip show -g $rg -n $pe_vnet_name-jump --query ipAddress -o tsv | tr -d '\r')
 
 # clean up cloud init script
 rm -rf $cloudinit_file
 
 echo RDP into this VM $pubip and try to to browse http://$peip which is a private endpoint connected to a private link service!!
+echo when the pages loads, notice the X-Forwarded-For under HTTP Headers is the IP address of the private link service 10.1.0.250
 
 # rg cleanup
 #az group delete -n $rg --yes --no-wait
