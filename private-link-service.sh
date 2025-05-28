@@ -166,14 +166,14 @@ az network vnet subnet update --vnet-name $onprem1_vnet_name -n $onprem1_vm_subn
 
 # hub1 test vm
 echo -e "\e[1;36mCreating a VM in PE VNet to access the private endpoint...\e[0m"
-az network public-ip create -g $rg -n $hub1_vnet_name --sku basic -o none
+az network public-ip create -g $rg -n $hub1_vnet_name --sku basic --allocation-method Static -o none
 az network nic create -g $rg -n $hub1_vnet_name -l $location --public-ip-address $hub1_vnet_name --vnet-name $hub1_vnet_name --subnet $hub1_vm_subnet_name -o none
 az vm create -g $rg -n $hub1_vnet_name -l $location --image  Win2022Datacenter --nics $hub1_vnet_name --os-disk-name $hub1_vnet_name --size Standard_B2als_v2 --admin-username $admin_username --admin-password $admin_password --no-wait
 hub1_pubip=$(az network public-ip show -g $rg -n $hub1_vnet_name --query ipAddress -o tsv | tr -d '\r') && echo $hub1_vnet_name public ip: $hub1_pubip
 
 # onprem1 test vm
 echo -e "\e[1;36mCreating a VM in PE VNet to access the private endpoint...\e[0m"
-az network public-ip create -g $rg -n $onprem1_vnet_name --sku basic -o none
+az network public-ip create -g $rg -n $onprem1_vnet_name --sku basic --allocation-method Static -o none
 az network nic create -g $rg -n $onprem1_vnet_name -l $location --public-ip-address $onprem1_vnet_name --vnet-name $onprem1_vnet_name --subnet $onprem1_vm_subnet_name -o none
 az vm create -g $rg -n $onprem1_vnet_name -l $location --image  Win2022Datacenter --nics $onprem1_vnet_name --os-disk-name $onprem1_vnet_name --size Standard_B2als_v2 --admin-username $admin_username --admin-password $admin_password --no-wait
 onprem1_pubip=$(az network public-ip show -g $rg -n $onprem1_vnet_name --query ipAddress -o tsv | tr -d '\r') && echo $onprem1_vnet_name public ip: $onprem1_pubip
