@@ -469,8 +469,8 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_gw_pubip "sudo vtysh -
 echo -e "\e[1;36mChecking BGP routing on $onprem1_vnet_name-gw gateway vm...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtysh -c 'show bgp summary' && sudo vtysh -c 'show bgp all' && sudo vtysh -c 'show int brief' && sudo vtysh -c 'show ip route'"
 
-echo "RDP into $hub1_vnet_name VM's $hub1_pubip and to $onprem1_vnet_name VM's $onprem1_pubip and try to to browse http://$peip which is a private endpoint connected to a private link service!!"
-echo when the pages loads, notice the X-Forwarded-For under HTTP Headers is the IP address of the private link service 10.11.0.250
+echo -e "\e[1;32mRDP into $hub1_vnet_name IP VM $hub1_pubip and to $onprem1_vnet_name VM IP $onprem1_pubip and try to to browse http://$peip which is a private endpoint connected to a private link service...\e[0m"
+echo -e "\e[1;32mWhen the pages loads, notice the X-Forwarded-For under HTTP Headers is the IP address of the private link service 10.11.0.250\e[0m"
 
 # rg cleanup
 # az group delete -n $rg --yes --no-wait
